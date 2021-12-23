@@ -34,7 +34,7 @@ class DKT(nn.Module):
             # <출력크기>
             # 출력은 각 문항에 대한 예측 정답률이 되어야 하므로, 
             # 문항(M)의 갯수만큼 출력하기 위해 int(input_size / 2)로 정의함
-            nn.Linear(hidden_size, int(input_size / 2))
+            nn.Linear(hidden_size, int(input_size / 2)),
             # DKT는 기본적으로 이진분류 모델이므로, Sigmoid를 사용함
             # Linear를 통과한 값을 Sigmoid로 감싸서 확률값으로 나오게 함
             nn.Sigmoid()
@@ -46,4 +46,8 @@ class DKT(nn.Module):
         # rnn의 ouput으로는 output 결과물과 함께 (h_n)이 나옴 / (h_n): final hidden state for each element in the batch
         # 뒤는 필요없으므로, _로 무시함
         z, _ = self.rnn(x)
-        # |z| = 
+        # |z| = (sequence_length, batch_size, hidden_size)
+        # z는 모든 time step의 결과를 가져옴
+        y = self.layers(z)
+        # |y| = (batch_size, int(input_size / 2))
+        return y
