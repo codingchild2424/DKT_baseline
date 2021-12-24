@@ -1,5 +1,3 @@
-#trainer에서는 직접적으로 모델을 훈련시키는 코드를 작성
-
 from copy import deepcopy
 
 import numpy as np
@@ -17,7 +15,23 @@ class Trainer():
 
         super().__init__()
 
+    # train
     def _train(self, x, config):
         self.model.train()
 
-        #shuffle
+        # 전체 데이터 shuffle하기
+        
+
+
+
+    def _validate(self, x, config):
+        self.model.eval()
+        # validate
+
+
+
+    def train(self):
+        pass
+
+
+

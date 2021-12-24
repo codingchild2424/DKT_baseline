@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
+import random
 
 #from torch.utils.data import Dataset <- 이걸 상속받아서 기능을 사용할 수 있음
 
@@ -78,3 +79,26 @@ class ASSISTments_data_loader:
             batches.append(torch.Tensor(batch))
 
         return batches
+
+    # data shuffle
+    def data_shuffle(self, batches, train_ratios = .6, valid_ratios = .2, test_ratios = .2):
+        
+        #학생 데이터 섞기
+        batches = random.sample(batches, len(batches))
+
+        #비율 설정
+        ratios = [train_ratios, valid_ratios, test_ratios]
+
+        #train, valid, test 비율 설정
+        train_cnt = int(len(batches) * ratios[0])
+        valid_cnt = int(len(batches) * ratios[1])
+        test_cnt = len(batches) - train_cnt - valid_cnt
+
+        cnts = [train_cnt, valid_cnt, test_cnt]
+
+        train_data = batches[:cnts[0]]
+        valid_data = batches[cnts[0]:cnts[0] + cnts[1]]
+        test_data = batches[cnts[0] + cnts[1]:]
+
+        return train_data, valid_data, test_data
+
