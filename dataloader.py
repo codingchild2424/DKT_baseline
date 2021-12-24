@@ -80,25 +80,25 @@ class ASSISTments_data_loader:
 
         return batches
 
-    # data shuffle
-    def data_shuffle(self, batches, train_ratios = .6, valid_ratios = .2, test_ratios = .2):
-        
-        #학생 데이터 섞기
-        batches = random.sample(batches, len(batches))
+    #data와 예측값 y_hat_i
+    def y_true_and_score(self, data, y_hat_i):
+        #correc와 mask를 정의
+        #correct는 처음부터 M까지의 데이터, 즉 정답값에 속하는 원핫벡터(100개)를 의미함
+        correct = data[:,:, :self.n_items]
+        #mask는 정오답에 상관없이 앞의 M개 데이터(정답)와 뒤의 M개 데이터(오답)를 더해서 문항의 위치를 확인하기 위한 용도임
+        mask = (data[:,:, :self.n_items] + data[:,:, self.n_items:]).type(torch.BoolTensor)
+        #y_true에 들어가는 것은 정답값임
+        #이 중에서 correct[1:]은 가장 첫번째 정답값을 제하고, 두번째 정답부터 끝까지를 담고 있음
+        #mask[1:]을 통해 해당 문항이 정답인지 오답인지를 담고 있는 값을 만들 수 있음 -> 값은 정답이면 1, 아니면 0을 담고 있음
+        y_true = torch.masked_select(correct[1:], mask[1:])
+        #y_hat_i의 값은 각각 한칸 뒤의 문항에 대한 정답률을 추정하는 확률값임
+        #따라서 y_hat_i[:-1]를 통해 마지막 값은 무시하면 두번째 문항부터 마지막 문항까지 예측 확률값을 알 수 있음
+        #그래서 mask[1:]을 사용하면, 2번 문항부터의 문항번호를 알 수 있기에 해당 문항의 예측 확률값만 얻을 수 있음
+        y_score = torch.masked_select(y_hat_i[:-1], mask[1:])
 
-        #비율 설정
-        ratios = [train_ratios, valid_ratios, test_ratios]
+        #y_true와 y_score를 numpy로 바꿈
+        y_true = torch.cat(y_true).detach().cpu().numpy()
+        y_score = torch.cat(y_score).detach().cpu().numpy()
 
-        #train, valid, test 비율 설정
-        train_cnt = int(len(batches) * ratios[0])
-        valid_cnt = int(len(batches) * ratios[1])
-        test_cnt = len(batches) - train_cnt - valid_cnt
-
-        cnts = [train_cnt, valid_cnt, test_cnt]
-
-        train_data = batches[:cnts[0]]
-        valid_data = batches[cnts[0]:cnts[0] + cnts[1]]
-        test_data = batches[cnts[0] + cnts[1]:]
-
-        return train_data, valid_data, test_data
+        return y_true, y_score
 
