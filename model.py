@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.nn.modules.activation import Sigmoid
 
 # 아래에 모델 클래스 정의
 class DKT(nn.Module):
@@ -25,7 +24,7 @@ class DKT(nn.Module):
             hidden_size = hidden_size,
             num_layers = n_layers,
             batch_first = False, # batch_first = True를 사용하면, batch 크기가 가장 먼저 나옴 / dataloader에 data가 들어가면 어차피 순서가 바뀌어서 batch_first를 False로 사용함
-            dropout = dropout_p,
+            dropout = dropout_p
         )
         self.layers = nn.Sequential(
             # <입력크기>

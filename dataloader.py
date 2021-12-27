@@ -13,7 +13,7 @@ import random
 # ASSISTments2015_data_loader class 정의
 class ASSISTments_data_loader:
 
-    def __init__(self, DATA_DIR):
+    def __init__(self, DATA_DIR, device):
         self.data_path = DATA_DIR
         #해당 부분을 간결하게 만들 수 있도록 정의해보기
         self.data_pd = pd.read_csv(self.data_path)
@@ -30,6 +30,7 @@ class ASSISTments_data_loader:
         self.idx_students = np.unique(self.students)
         #idx_items: 중복되지 않은 문항들의 목록
         self.idx_items = np.unique(self.items)
+        self.device = device
 
     # one_hot_vectors를 만드는 method
     def make_one_hot_vectors(self):
@@ -96,9 +97,36 @@ class ASSISTments_data_loader:
         #그래서 mask[1:]을 사용하면, 2번 문항부터의 문항번호를 알 수 있기에 해당 문항의 예측 확률값만 얻을 수 있음
         y_score = torch.masked_select(y_hat_i[:-1], mask[1:])
 
-        #y_true와 y_score를 numpy로 바꿈
-        y_true = torch.cat(y_true).detach().cpu().numpy()
-        y_score = torch.cat(y_score).detach().cpu().numpy()
-
         return y_true, y_score
+
+    def loss_function(self, y_hat, y_real):
+        eps = 1e-8
+        #delta는 target이 총 길이가 n_items * 2인데, 
+        #이 중에서 앞에 있는 절반([:, :, self.n_items])과
+        #뒤에 있는 절반([:, :, self.n_items:])을 합치는 것
+        #delta는 결국 one-hot encoding이지만, 차원은 n_itmes임
+        #delta = [0, 0, 1, 0 ....] 길이는 n_items
+        #delta는 정오답 상관없이 문항의 위치를 알려주는 변수
+        delta = y_real[:,:, :self.n_items] + y_real[:,:, self.n_items:]
+        #sum(axis=-1)은 차원의 마지막을 기준으로 합치는 것
+        #즉, 원핫 벡터의 구성요소를 다 더한 것을 bool로 표시
+        #tensor([[True, True, True], [True, True, True]])
+        mask = delta.sum(axis=-1).type(torch.BoolTensor).to(self.device)
+        #data는 모델 통과 후의 값인데, 차원은 n_items이고, sigmoid()를 통과하여 확률값으로 표시됨
+        #여기에 엄청나게 작은 값을 곱하고 더함으로써 매우 작은 값으로 보정함
+        #!!!이유는 모르겠음
+        y_hat =  y_hat* (1-2*eps) + eps
+        #correct는 처음~M까지의 데이터로 여기에는 정답일 경우, 문항 번호를 표기하는 곳임
+        #차원은 n_items
+        correct = y_real[:,:, :self.n_items].to(self.device)
+        #correct는 정답에 대한 정오답 벡터(n_items 차원)
+        #data.log()는 각 문항에 대한 확률값의 로그값(n_items 차원)
+        #공식은 BCE 공식 그대로
+        bce = - correct*y_hat.log() - (1-correct)*(1-y_hat).log()
+        #bce값을 delta(정답쪽 one-hot과 오답쪽 one-hot을 더한 값, n_items 차원)와 곱한 후
+        #이것을 axis -1 방향으로 더함
+        #그러면 해당 문항의 bce 값을 알 수 있고, 모든 문항에 대한 확률값을 알 수 있음
+        bce = (bce*delta).sum(axis=-1)
+        #최종 반환 값에서 bce를 mask를 통해 모두 선택하고, 이를 평균내어 반환함
+        return torch.masked_select(bce, mask).mean()
 

@@ -11,19 +11,19 @@ from torch.utils.data import Dataset, DataLoader
 
 #utils에서 collate를 가져옴
 from utils import collate
-from utils import loss_function
-from utils import y_true_and_score
 
 from dataloader import ASSISTments_data_loader
 
-dataloader = ASSISTments_data_loader
+#데이터 경로
+DATA_DIR = 'data/2015_100_skill_builders_main_problems.csv'
 
 class Trainer():
 
-    def __init__(self, model, optimizer, crit):
+    def __init__(self, model, optimizer, crit, device):
         self.model = model
         self.optimizer = optimizer
         self.crit = crit
+        self.device = device
 
         super().__init__()
 
@@ -40,29 +40,43 @@ class Trainer():
 
         auc_score = 0
 
+        #y_true and score 때문에 가져왔는데, 나중에 함수 나눠서 없애고 정리하기
+        dataloader = ASSISTments_data_loader(DATA_DIR, self.device)
+
+        y_trues, y_scores = [], []
+
         # train_loader에서 미니배치가 반환됨
         for i, data in enumerate(train_loader):
-            #data와 model은 train에서 device에 올릴 것임
+            #여기서 data를 device에 올리기
+            data = data.to(self.device)
             y_hat_i = self.model(data) #|y_hat_i| = torch.Size([190, 100]), 각 값은 문항별 확률값
-            config.optimizer.zero_grad()
+            self.optimizer.zero_grad()
             #loss를 구하기 위해서는 반환된 값의 차원(n_items)과 다음 값의 차원(n_items / 2)로 설정해서 비교해야함
             #따라서 mask를 씌우는 작업이 필요함
             #해당 기능은 loss_function에서 구현함
-            loss = loss_function(y_hat_i[:-1], data[1:])
+            loss = self.crit(y_hat_i[:-1], data[1:])
             loss.backward()
-            config.optimizer.step()
+            self.optimizer.step()
             #y_true값과 y_score값을 계산
             y_true, y_score = dataloader.y_true_and_score(data, y_hat_i)
-            #train의 auc_score를 계산
-            auc_score += metrics.roc_auc_score(y_true, y_score)
 
-            if config.verbose >= 2:
-                print("train iteration(%d/%d): auc score=%.4e" % (i + 1, len(train_data), float(auc_score)))
+            y_trues.append(y_true)
+            y_scores.append(y_score)
+
+        #y_true와 y_score를 numpy로 바꿈
+        y_trues = torch.cat(y_trues).detach().cpu().numpy()
+        y_scores = torch.cat(y_scores).detach().cpu().numpy()
+
+        #train의 auc_score를 계산
+        auc_score += metrics.roc_auc_score(y_trues, y_scores)
+
+        # if config.verbose >= 2:
+        #     print("train iteration(%d/%d): auc score=%.4e" % (i + 1, len(train_data), float(auc_score)))
 
         return auc_score
 
     #_validate
-    def _validate(self, valid_data, config):
+    def _valid(self, valid_data, config):
         self.model.eval()
 
         # validate 데이터 shuffle하기
@@ -75,17 +89,31 @@ class Trainer():
 
         auc_score = 0
 
+        #y_true and score 때문에 가져왔는데, 나중에 함수 나눠서 없애고 정리하기
+        dataloader = ASSISTments_data_loader(DATA_DIR, self.device)
+
+        y_trues, y_scores = [], []
+
         with torch.no_grad():
             for i, data in enumerate(valid_loader):
+                data = data.to(self.device)
                 y_hat_i = self.model(data)
-                loss = loss_function(y_hat_i[:-1], data[1:])
+                loss = self.crit(y_hat_i[:-1], data[1:])
                 #y_true값과 y_score값을 계산
                 y_true, y_score = dataloader.y_true_and_score(data, y_hat_i)
-                #train의 auc_score를 계산
-                auc_score += metrics.roc_auc_score(y_true, y_score)
 
-                if config.verbose >= 2:
-                    print("valid iteration(%d/%d): auc score=%.4e" % (i + 1, len(valid_data), float(auc_score)))
+                y_trues.append(y_true)
+                y_scores.append(y_score)
+            
+        #y_true와 y_score를 numpy로 바꿈
+        y_trues = torch.cat(y_trues).detach().cpu().numpy()
+        y_scores = torch.cat(y_scores).detach().cpu().numpy()
+
+        #train의 auc_score를 계산
+        auc_score += metrics.roc_auc_score(y_trues, y_scores)
+
+                # if config.verbose >= 2:
+                #     print("valid iteration(%d/%d): auc score=%.4e" % (i + 1, len(valid_data), float(auc_score)))
 
         return auc_score
 
