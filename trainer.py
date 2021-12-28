@@ -7,7 +7,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
+
+from torch.utils.data import DataLoader
 
 #utils에서 collate를 가져옴
 from utils import DKT_utils
@@ -45,7 +47,7 @@ class Trainer():
         y_trues, y_scores = [], []
 
         # train_loader에서 미니배치가 반환됨
-        for i, data in enumerate(train_loader):
+        for i, data in enumerate(tqdm(train_loader, ascii = True)):
             #여기서 data를 device에 올리기
             data = data.to(self.device)
             y_hat_i = self.model(data) #|y_hat_i| = torch.Size([190, 100]), 각 값은 문항별 확률값
@@ -91,7 +93,7 @@ class Trainer():
         y_trues, y_scores = [], []
 
         with torch.no_grad():
-            for i, data in enumerate(valid_loader):
+            for i, data in enumerate(tqdm(valid_loader, ascii = True)):
                 data = data.to(self.device)
                 y_hat_i = self.model(data)
                 loss = self.crit(y_hat_i[:-1], data[1:])
@@ -113,6 +115,8 @@ class Trainer():
     # _train과 _validate를 활용해서 train함
     def train(self, train_data, valid_data, config):
 
+        print("========================Train Start===========================")
+
         highest_auc_score = 0
         best_model = None
 
@@ -132,9 +136,11 @@ class Trainer():
                 highest_auc_score,
             ))
 
+        print("========================Train Finish===========================")
+
+        print("The Highest_Auc_Score to Test Data is %.4e" % (
+                highest_auc_score,
+            ))
+        
         # 가장 최고의 모델 복구    
         self.model.load_state_dict(best_model)
-
-        
-
-

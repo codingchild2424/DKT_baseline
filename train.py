@@ -85,12 +85,11 @@ def main(config):
     }, config.model_fn)
 
     #predict
-    model_fn = "model.pth"
+    pred_model_fn = "model.pth"
 
     pred_model = DKT(input_size = input_size, hidden_size = hidden_size)
     pred_model = pred_model.to(device)
-    pred_model.load_state_dict( torch.load(model_fn) )
-
+    pred_model.load_state_dict( torch.load(pred_model_fn), strict = False )
     predictor = Predictor(pred_model, optimizer, crit, device)
 
     predictor.predict(test_data, config)

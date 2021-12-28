@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 from sklearn import metrics
 
-import torch
+from tqdm import tqdm
 
 from torch.utils.data import DataLoader
 
@@ -67,16 +67,19 @@ class Predictor:
 
     def predict(self, test_data, config):
 
+        print("========================Predict Start===========================")
+
         highest_auc_score = 0
 
-        for epoch_index in range(config.n_epochs):
+        for epoch_index in tqdm(range(config.n_epochs), ascii = True):
             test_auc_score = self._predict(test_data, config)
 
             if test_auc_score >= highest_auc_score:
                 highest_auc_score = test_auc_score
 
+        print("========================Predict Finish===========================")
         
-        print("The highest_auc_score is %.4e" % (
+        print("The Highest_Auc_Score to Test Data is %.4e" % (
                 highest_auc_score,
             ))
     
