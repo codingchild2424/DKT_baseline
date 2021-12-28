@@ -8,29 +8,41 @@ If you want to contact with us, please send me a mail.
 mail address: colaandedm@gmail.com
 
 # Manual
-1) .py
+## Python files
 
-model.py: DKT model
+Python files are program to initialize the DKT training and predicting.
 
-trainer.py: class for training
+This program consist of 6 modules.
 
-predict.py: class for predicting
+1. model.py: DKT model
 
-train.py: main
+2. trainer.py: class for training and validating
 
-utils.py: util class or function
+3. predict.py: class for predicting
 
-2) .ipynb
+4. train.py: main file
 
-For learning and Visualizing the DKT
+5. utils.py: util class or functions
+
+6. model.pth: trained model files
+
+## jupyter file
+
+Jupyter file are made for learning and visualizing the DKT.
+
+Learner can check the result of all cells.
+
+Detail comment will be added.
 
 # Environments
 We use Docker environments for develop my code.
 
 The Docker Image is 'ufoym/deepo'.
 
+'ufoym/deepo' has a lot of python package for deep learning.
+
 # How to start?
-1) Use terminal and type this code
+1) Use terminal and type this code. You should check your path(use pwd).
 ```
 $ python3 train.py --model_fn model.pth
 ```
