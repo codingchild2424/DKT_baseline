@@ -10,8 +10,7 @@ from torch.utils.data.dataloader import DataLoader
 #다른 .py파일 가져오기
 from model import DKT
 from trainer import Trainer
-from dataloader import ASSISTments_data_loader
-from utils import collate
+from utils import DKT_utils
 
 #데이터 경로
 DATA_DIR = 'data/2015_100_skill_builders_main_problems.csv'
@@ -39,12 +38,12 @@ def main(config):
     device = torch.device('cpu') if config.gpu_id < 0 else torch.device('cuda:%d' % config.gpu_id)
 
     #객체 선언
-    data_loader = ASSISTments_data_loader(DATA_DIR, device)
+    dkt_utils = DKT_utils(DATA_DIR, device)
 
     #one_hot_vectors로 만들기
-    one_hot_vectors = data_loader.make_one_hot_vectors()
+    one_hot_vectors = dkt_utils.make_one_hot_vectors()
     #batches로 만들기
-    batches = data_loader.make_batches(one_hot_vectors)
+    batches = dkt_utils.make_batches(one_hot_vectors)
     #batche 데이터 섞기
     batches = random.sample(batches, len(batches))
 
@@ -60,6 +59,8 @@ def main(config):
     valid_data = batches[cnts[0]:cnts[0] + cnts[1]]
     test_data = batches[cnts[0] + cnts[1]:]
 
+    #test data를 사전에 복사해서 파일로 만들어두는 코드가 필요(predict에서 활용하기 위해)
+
     #hyperparameters
     input_size = len(batches[0][0])
     hidden_size = 50
@@ -68,8 +69,8 @@ def main(config):
     model = DKT(input_size = input_size, hidden_size = hidden_size)
     model = model.to(device)
     optimizer = optim.Adam(model.parameters())
-    #crit을 통해 data_loader.py에 있는 loss_function()을 받아옴
-    crit = data_loader.loss_function
+    #crit을 통해 utils.py에 있는 loss_function()을 받아옴
+    crit = dkt_utils.loss_function
 
     #device를 하나 더 받도록 만듬
     trainer = Trainer(model, optimizer, crit, device)

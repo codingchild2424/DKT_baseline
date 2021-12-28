@@ -10,9 +10,8 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 
 #utils에서 collate를 가져옴
+from utils import DKT_utils
 from utils import collate
-
-from dataloader import ASSISTments_data_loader
 
 #데이터 경로
 DATA_DIR = 'data/2015_100_skill_builders_main_problems.csv'
@@ -41,7 +40,7 @@ class Trainer():
         auc_score = 0
 
         #y_true and score 때문에 가져왔는데, 나중에 함수 나눠서 없애고 정리하기
-        dataloader = ASSISTments_data_loader(DATA_DIR, self.device)
+        dkt_utils = DKT_utils(DATA_DIR, self.device)
 
         y_trues, y_scores = [], []
 
@@ -58,7 +57,7 @@ class Trainer():
             loss.backward()
             self.optimizer.step()
             #y_true값과 y_score값을 계산
-            y_true, y_score = dataloader.y_true_and_score(data, y_hat_i)
+            y_true, y_score = dkt_utils.y_true_and_score(data, y_hat_i)
 
             y_trues.append(y_true)
             y_scores.append(y_score)
@@ -90,7 +89,7 @@ class Trainer():
         auc_score = 0
 
         #y_true and score 때문에 가져왔는데, 나중에 함수 나눠서 없애고 정리하기
-        dataloader = ASSISTments_data_loader(DATA_DIR, self.device)
+        dataloader = DKT_utils(DATA_DIR, self.device)
 
         y_trues, y_scores = [], []
 
@@ -112,8 +111,8 @@ class Trainer():
         #train의 auc_score를 계산
         auc_score += metrics.roc_auc_score(y_trues, y_scores)
 
-                # if config.verbose >= 2:
-                #     print("valid iteration(%d/%d): auc score=%.4e" % (i + 1, len(valid_data), float(auc_score)))
+        # if config.verbose >= 2:
+        #     print("valid iteration(%d/%d): auc score=%.4e" % (i + 1, len(valid_data), float(auc_score)))
 
         return auc_score
 
