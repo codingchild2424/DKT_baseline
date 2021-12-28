@@ -11,6 +11,7 @@ from torch.utils.data.dataloader import DataLoader
 from model import DKT
 from trainer import Trainer
 from utils import DKT_utils
+from predict import Predictor
 
 #데이터 경로
 DATA_DIR = 'data/2015_100_skill_builders_main_problems.csv'
@@ -59,14 +60,14 @@ def main(config):
     valid_data = batches[cnts[0]:cnts[0] + cnts[1]]
     test_data = batches[cnts[0] + cnts[1]:]
 
-    #test data를 사전에 복사해서 파일로 만들어두는 코드가 필요(predict에서 활용하기 위해)
-
     #hyperparameters
     input_size = len(batches[0][0])
     hidden_size = 50
 
     #model 선언
     model = DKT(input_size = input_size, hidden_size = hidden_size)
+    #model의 구조 보여주기
+    print(model)
     model = model.to(device)
     optimizer = optim.Adam(model.parameters())
     #crit을 통해 utils.py에 있는 loss_function()을 받아옴
@@ -82,6 +83,17 @@ def main(config):
         'model': trainer.model.state_dict(),
         'config': config
     }, config.model_fn)
+
+    #predict
+    model_fn = "model.pth"
+
+    pred_model = DKT(input_size = input_size, hidden_size = hidden_size)
+    pred_model = pred_model.to(device)
+    pred_model.load_state_dict( torch.load(model_fn) )
+
+    predictor = Predictor(pred_model, optimizer, crit, device)
+
+    predictor.predict(test_data, config)
 
 #실행
 if __name__ == '__main__':

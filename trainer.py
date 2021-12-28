@@ -69,9 +69,6 @@ class Trainer():
         #train의 auc_score를 계산
         auc_score += metrics.roc_auc_score(y_trues, y_scores)
 
-        # if config.verbose >= 2:
-        #     print("train iteration(%d/%d): auc score=%.4e" % (i + 1, len(train_data), float(auc_score)))
-
         return auc_score
 
     #_validate
@@ -89,7 +86,7 @@ class Trainer():
         auc_score = 0
 
         #y_true and score 때문에 가져왔는데, 나중에 함수 나눠서 없애고 정리하기
-        dataloader = DKT_utils(DATA_DIR, self.device)
+        dkt_utils = DKT_utils(DATA_DIR, self.device)
 
         y_trues, y_scores = [], []
 
@@ -99,7 +96,7 @@ class Trainer():
                 y_hat_i = self.model(data)
                 loss = self.crit(y_hat_i[:-1], data[1:])
                 #y_true값과 y_score값을 계산
-                y_true, y_score = dataloader.y_true_and_score(data, y_hat_i)
+                y_true, y_score = dkt_utils.y_true_and_score(data, y_hat_i)
 
                 y_trues.append(y_true)
                 y_scores.append(y_score)
@@ -111,22 +108,19 @@ class Trainer():
         #train의 auc_score를 계산
         auc_score += metrics.roc_auc_score(y_trues, y_scores)
 
-        # if config.verbose >= 2:
-        #     print("valid iteration(%d/%d): auc score=%.4e" % (i + 1, len(valid_data), float(auc_score)))
-
         return auc_score
 
     # _train과 _validate를 활용해서 train함
     def train(self, train_data, valid_data, config):
 
-        highest_auc = 0
+        highest_auc_score = 0
         best_model = None
 
         for epoch_index in range(config.n_epochs):
             train_auc_score = self._train(train_data, config)
             valid_auc_score = self._valid(valid_data, config)
 
-            if valid_auc_score >= highest_auc:
+            if valid_auc_score >= highest_auc_score:
                 highest_auc_score = valid_auc_score
                 best_model = deepcopy(self.model.state_dict())
 
