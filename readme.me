@@ -1,19 +1,17 @@
-1. Introduce
+# DKT_baseline made by CoLA & EDM
+---
 
-This code is made for researchers who want to research Deep Knowledge Tracing with Pytorch.
+This code is Deep knowledge Tracing(DKT) baseline code for Learning Analytics(LA) and Educational Data Mining(EDM) researchers.
 
-For the researcher and me, I will refine the code and make comments.
+And this code is made by CoLA & EDM(Community of Learning Analytics and Educational Data Mining), which is the research group of LA and EDM in South Korea.
 
-If you have a question of this code, you can send me a mail to me.
+If you want to contact with us, please send me a mail.
 
-codingchild@gmail.com
+mail address: colaandedm@gmail.com
 
------
-
-2. Manual
-
+# Manual
+---
 1) .py
-
 model.py: DKT model
 trainer.py: class for training
 predict.py: class for predicting
@@ -21,37 +19,33 @@ train.py: main
 utils.py: util class or function
 
 2) .ipynb
-
 For learning and Visualizing the DKT
 
------
-
-3. Environments
-
-I use Docker environments for develop my code.
-
+# Environments
+---
+We use Docker environments for develop my code.
 The Docker Image is 'ufoym/deepo'.
 
-
-------
-
-4. How to start?
+# How to start?
+---
 
 1) Use terminal and type this code
-
-  $ python3 train.py --model_fn model.pth
+```
+$ python3 train.py --model_fn model.pth
+```
 
 2) If you want to use more options, then try this code and check the more options
-
-  $ python3 train.py --help
+```
+$ python3 train.py --help
+```
 
 3) You can check your GPU can be available by using this code.
+```
+$ nvidia-smi
+```
 
-  $ nvidia-smi
-
-------
-
-5. References
+# References
+---
 
 1) Juno-hwang's Juno-dkt github page
 https://github.com/juno-hwang/juno-dkt
