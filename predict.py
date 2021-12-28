@@ -79,7 +79,7 @@ class Predictor:
 
         print("========================Predict Finish===========================")
         print("\n")
-        print("The Highest_Auc_Score in Predicting Session is %.4e" % (
+        print("The Highest_Auc_Score in Predicting Session is %.4f" % (
                 highest_auc_score,
             ))
         print("\n")

@@ -122,7 +122,10 @@ class Trainer():
 
         for epoch_index in range(config.n_epochs):
 
-            print("Epoch(%d/%d) Start" % epoch_index + 1, config.n_epochs)
+            print("Epoch(%d/%d) start" % (
+                epoch_index + 1,
+                config.n_epochs
+            ))
             
             train_auc_score = self._train(train_data, config)
             valid_auc_score = self._valid(valid_data, config)
@@ -131,7 +134,7 @@ class Trainer():
                 highest_auc_score = valid_auc_score
                 best_model = deepcopy(self.model.state_dict())
 
-            print("Epoch(%d/%d): train_auc_score=%.4e  valid_auc_score=%.4e  highest_auc_score=%.4e" % (
+            print("Epoch(%d/%d) result: train_auc_score=%.4f  valid_auc_score=%.4f  highest_auc_score=%.4f" % (
                 epoch_index + 1,
                 config.n_epochs,
                 train_auc_score,
@@ -141,7 +144,7 @@ class Trainer():
 
         print("========================Train Finish===========================")
         print("\n")
-        print("The Highest_Auc_Score in Training Session is %.4e" % (
+        print("The Highest_Auc_Score in Training Session is %.4f" % (
                 highest_auc_score,
             ))
         print("\n")
