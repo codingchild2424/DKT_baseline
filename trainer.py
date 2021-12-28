@@ -47,7 +47,7 @@ class Trainer():
         y_trues, y_scores = [], []
 
         # train_loader에서 미니배치가 반환됨
-        for i, data in enumerate(tqdm(train_loader, ascii = True)):
+        for i, data in enumerate(tqdm(train_loader, ascii = True, desc = 'train: ')):
             #여기서 data를 device에 올리기
             data = data.to(self.device)
             y_hat_i = self.model(data) #|y_hat_i| = torch.Size([190, 100]), 각 값은 문항별 확률값
@@ -93,7 +93,7 @@ class Trainer():
         y_trues, y_scores = [], []
 
         with torch.no_grad():
-            for i, data in enumerate(tqdm(valid_loader, ascii = True)):
+            for i, data in enumerate(tqdm(valid_loader, ascii = True, desc = 'valid: ')):
                 data = data.to(self.device)
                 y_hat_i = self.model(data)
                 loss = self.crit(y_hat_i[:-1], data[1:])
@@ -121,6 +121,9 @@ class Trainer():
         best_model = None
 
         for epoch_index in range(config.n_epochs):
+
+            print("Epoch(%d/%d) Start" % epoch_index + 1, config.n_epochs)
+            
             train_auc_score = self._train(train_data, config)
             valid_auc_score = self._valid(valid_data, config)
 
@@ -137,10 +140,11 @@ class Trainer():
             ))
 
         print("========================Train Finish===========================")
-
-        print("The Highest_Auc_Score to Test Data is %.4e" % (
+        print("\n")
+        print("The Highest_Auc_Score in Training Session is %.4e" % (
                 highest_auc_score,
             ))
+        print("\n")
         
         # 가장 최고의 모델 복구    
         self.model.load_state_dict(best_model)

@@ -78,8 +78,9 @@ class Predictor:
                 highest_auc_score = test_auc_score
 
         print("========================Predict Finish===========================")
-        
-        print("The Highest_Auc_Score to Test Data is %.4e" % (
+        print("\n")
+        print("The Highest_Auc_Score in Predicting Session is %.4e" % (
                 highest_auc_score,
             ))
+        print("\n")
     
